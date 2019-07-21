@@ -1,3 +1,3 @@
 Token = NTQzNzk3NTA3NjQyMjI4NzM5.D0CLCw.F5bqN4A8Sgi3VzcXOsJAWIsCGjI
 
-Invite = https://discordapp.com/oauth2/authorize?client_id=543797507642228739&scope=boT
+Invite = https://discordapp.com/oauth2/authorize?client_id=543797507642228739&scope=bot
