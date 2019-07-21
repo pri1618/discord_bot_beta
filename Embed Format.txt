@@ -1,0 +1,49 @@
+const exampleEmbed = {
+	color: 0x0099ff,     					//0x for converting the hex into a number as hex is not accepted.
+	title: 'Some title',
+	url: 'https://discord.js.org',
+	author: {
+		name: 'Some name',
+		icon_url: 'https://i.imgur.com/wSTFkRM.png', 	//small icon on the top.
+		url: 'https://discord.js.org',
+	},
+	description: 'Some description here',
+	thumbnail: {
+		url: 'https://i.imgur.com/wSTFkRM.png',		//a bit larger icon on the top-right.
+	},
+	fields: [						//uselful for making help embeds. (General Help Embeb Format)
+		{
+			name: 'Regular field title',
+			value: 'Some value here',
+		},
+		{
+			name: '\u200b',
+			value: '\u200b',
+		},
+		{
+			name: 'Inline field title',
+			value: 'Some value here',
+			inline: true,
+		},
+		{
+			name: 'Inline field title',
+			value: 'Some value here',
+			inline: true,
+		},
+		{
+			name: 'Inline field title',
+			value: 'Some value here',
+			inline: true,
+		},
+	],
+	image: {						//this image occupies position of honour. If no other elements present, occupies entire embed.
+		url: 'https://i.imgur.com/wSTFkRM.png',
+	},
+	timestamp: new Date(),
+	footer: {
+		text: 'Some footer text here',
+		icon_url: 'https://i.imgur.com/wSTFkRM.png', 	//directly below the image at author. Same size.
+	},
+};
+
+channel.send({ embed: exampleEmbed });				//format for sending embeds which are objects.
