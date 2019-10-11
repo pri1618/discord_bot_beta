@@ -114,7 +114,7 @@ client.on('guildDelete', async guild => {
 
 client.on('message', async message => {
 
-	const logging = message.content.toLowerCase();
+	const logging = message.content;
 
 	if (!message.author.bot) {
 		if (logging.startsWith(`${prefix}`)) {
@@ -166,9 +166,14 @@ client.on('message', async message => {
 	// 	message.channel.send('Jeez yourself cretin!');
 	// }
 
+	if (message.channel.type == 'dm' && message.author.id == '458919534946942986') {
+		const text = message.content;
+		client.channels.get('550687993938051095').send(text);
+	}
+
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-	const args = message.content.toLowerCase().slice(prefix.length).split(' ');
+	const args = message.content.slice(prefix.length).split(' ');
 	const commandName = args.shift().toLowerCase();
 
 	if (!commandName) {
@@ -193,20 +198,21 @@ client.on('message', async message => {
 		}
 	}
 
-	// else if (commandName === 'spam') {
-	// 	const times = parseInt(args[0]);
-	// 	for (let i = 0; i < times; i++) {
-	// 		message.channel.send('.ping');
-	// 		await sleep(2000);
-	// 	}
-	// }
+	else if (commandName === 'spam') {
+		const times = parseInt(args[0]);
+		if (message.author.id !== '458919534946942986') return;
+		for (let i = 0; i < times; i++) {
+			message.channel.send('spam');
+			await sleep(2000);
+		}
+	}
 
 	// if (commandName === 'dev') {
 	// 	const guildList = await guildInfo.findAll({ attributes: ['name'] }).map(t => t.name).catch(error => {
 	// 		console.error(error);
 	// 	});
 	//
-	// 	const developers = [`${maker}`, '486191605351579658'];
+	// 	const developers = ['458919534946942986'];
 	//
 	// 	const gldInfo = await client.guilds.map(gld => `**${gld.name}**(${gld.memberCount})`);
 	//
