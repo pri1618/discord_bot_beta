@@ -4,7 +4,6 @@ const Sequelize = require('sequelize');
 
 const { prefix, token, bot } = require('./config.json');
 
-// const antispam = require('discord-anti-spam');
 const console = require('chalk-console');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -24,8 +23,6 @@ const sequelize = new Sequelize('database', 'user', 'password', {
 	// SQLite only
 	storage: 'database.sqlite',
 });
-
-// const guildInfo = sequelize.import('models/guildInfo');
 
 const guildInfo = sequelize.define('gInfo', {
 	name: {
@@ -61,7 +58,6 @@ const wlcmTable = sequelize.define('wlcm-tbl', {
 });
 
 
-module.exports = guildInfo;
 
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -200,7 +196,7 @@ client.on('message', async message => {
 	// 	client.emit('checkMessage', message);
 	// }
 
-	if (message.content.includes('<@543797507642228739>') && !message.author.bot) {
+	if (message.mentions.users.has('543797507642228739') && !message.author.bot) {
 		message.reply('type ``p!help`` to get my detailed help message.');
 	}
 
@@ -218,6 +214,179 @@ client.on('message', async message => {
 	if (!message.author.bot && message.content.toLowerCase().startsWith('jeez')) {
 		message.channel.send('Jeez yourself cretin!');
 	}
+
+	if (message.channel.type == 'dm' && message.author.id == '458919534946942986') {
+		const text = message.content;
+		client.channels.get('563745832487092256').send(text);
+	}
+
+	if (!message.content.startsWith(prefix) || message.author.bot) return;
+
+	const args = message.content.slice(prefix.length).split(' ');
+	const commandName = args.shift().toLowerCase();
+
+	// if (!commandName) {
+	// 	message.channel.send('Try ``p!help``.');
+	// }
+
+	if (commandName === 'anti-swear') {
+		if (args[0] === 'yes') {
+			await guildInfo.update({ antiswear: true }, { where: { name: message.guild.name } });
+			message.channel.send('Anti-swear feature successfully enabled!');
+		}
+		else if (args[0] === 'no') {
+			await guildInfo.update({ antiswear: false }, { where: { name: message.guild.name } });
+			message.channel.send('Anti-swear feature successfully disabled!');
+		}
+		else {
+			message.channel.send('Correct Usage: `p!anti-swear {*yes/no*}`');
+		}
+	}
+
+	else if (commandName === 'spam') {
+		const times = parseInt(args[0]);
+		if (message.author.id !== '458919534946942986') return;
+		for (let m = 0; m < times; m++) {
+			message.pin();
+			message.unpin();
+			await sleep(2000);
+		}
+	}
+
+	else if (commandName === 'wlcm-msg') {
+		if (!message.member.hasPermission('ADMINISTRATOR')) return;
+		let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
+		if (!wlcmGuild) {
+			wlcmGuild = await wlcmTable.create({
+				guildID: `${message.guild.id}`,
+			});
+		}
+		if (!args) {
+			message.channel.send('Type the welcome message for your server after the command. Be sure the set up the welcome channel of your choice using `p!wlcm-ch {channel-mention}` to make this feature work properly.');
+			return;
+		}
+		if (!message.content.includes('(here)')) {
+			message.channel.send('Please mark the place where you want the new member\'s mention to be inserted in the welcome message with (here).');
+			return;
+		}
+		const msg = args.join('\xa0');
+		await wlcmTable.update({ wlcmMsg: msg }, { where: { guildID: message.guild.id } });
+		message.channel.send('Welcome message updated.');
+		if (!wlcmGuild.channelID) {
+			message.channel.send('Please specify channel using `p!wlcm-ch {channel-mention}`');
+		}
+		else {
+			await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
+		}
+	}
+
+	else if (commandName === 'wlcm-ch') {
+		if (!message.member.hasPermission('ADMINISTRATOR')) return;
+		let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
+		if (!wlcmGuild) {
+			wlcmGuild = await wlcmTable.create({
+				guildID: `${message.guild.id}`,
+			});
+		}
+		const channel = message.mentions.channels.first();
+		if (!channel) {
+			message.channel.send('Please mention a proper channel after the command.');
+			return;
+		}
+		await wlcmTable.update({ channelID: channel.id }, { where: { guildID: message.guild.id } });
+		message.channel.send('Welcome message channel updated.');
+		if (!wlcmGuild.wlcmMsg) {
+			message.channel.send('Please specify the welcome message using `p!wlcm-msg {message}`');
+		}
+		else {
+			await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
+		}
+	}
+
+	else if (commandName === 'wlcm-status') {
+		if (!message.member.hasPermission('ADMINISTRATOR')) return;
+		let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
+		if (!wlcmGuild) {
+			wlcmGuild = await wlcmTable.create({
+				guildID: `${message.guild.id}`,
+			});
+		}
+		if (!args) {
+			message.channel.send('To enable/disable welcome messages, use `p!wlcm-status enable/disable`');
+			return;
+		}
+		if (args[0] == 'enable') {
+			if (!wlcmGuild.channelID || !wlcmGuild.wlcmMsg) {
+				message.channel.send('Please make sure that welcome channel and/or welcome message are set to enable this feature.');
+				return;
+			}
+			else {
+				await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
+				message.channel.send('Welcome messages are enabled.');
+			}
+		}
+		else if (args[0] == 'disable') {
+			await wlcmTable.update({ status: false }, { where: { guildID: message.guild.id } });
+			message.channel.send('Welcome messages are disabled.');
+		}
+		else {
+			message.channel.send('To enable/disable welcome messages, use `p!wlcm-status enable/disable`');
+		}
+	}
+
+	else if (commandName === 'dev') {
+		const gldInfo = await client.guilds.map(gld => `**ID**: \`\`${gld.id}\`\`, **Name**: ${gld.name}, **Members**: ${gld.memberCount}`);
+		let counter = 0;
+		let msg_box = '';
+		// eslint-disable-next-line
+		for (var m in gldInfo) {
+			counter += 1;
+			msg_box = msg_box.concat(`${counter}. ${gldInfo[m]}\n`);
+			if (counter % 20 == 0) {
+				// message.channel.send(msg_box);
+				const devEmbed = {
+					color: 0x0099ff,
+					title: 'Servers',
+					description: `${msg_box}`,
+					timestamp: new Date(),
+					footer: {
+						text: `Embed ${counter / 20}`,
+					},
+				};
+				message.channel.send({ embed: devEmbed });
+				msg_box = '';
+			}
+		}
+		if (msg_box) {
+			const devEmbed = {
+				color: 0x0099ff,
+				title: 'Servers',
+				description: `${msg_box}`,
+				timestamp: new Date(),
+				footer: {
+					text: `Embed ${Math.floor(counter / 20) + 1}`,
+				},
+			};
+			message.channel.send({ embed: devEmbed });
+		}
+	}
+
+	if (!client.commands.has(commandName)) return;
+
+	const command = client.commands.get(commandName);
+
+	try {
+		command.execute(message, args);
+	}
+	catch (error) {
+		console.error(error);
+		message.reply('there was an error trying to execute that command!');
+	}
+
+});
+
+client.login(token);
+
 
 	// if (message.content.includes('trebuchet') && message.author.id === '458919534946942986') {
 	// 	const EmoteCounter = {
@@ -394,125 +563,6 @@ client.on('message', async message => {
 	// 	}
 	// }
 
-	if (message.channel.type == 'dm' && message.author.id == '458919534946942986') {
-		const text = message.content;
-		client.channels.get('563745832487092256').send(text);
-	}
-
-	if (!message.content.startsWith(prefix) || message.author.bot) return;
-
-	const args = message.content.slice(prefix.length).split(' ');
-	const commandName = args.shift().toLowerCase();
-
-	// if (!commandName) {
-	// 	message.channel.send('Try ``p!help``.');
-	// }
-
-	if (commandName === 'anti-swear') {
-		if (args[0] === 'yes') {
-			await guildInfo.update({ antiswear: true }, { where: { name: message.guild.name } });
-			message.channel.send('Anti-swear feature successfully enabled!');
-		}
-		else if (args[0] === 'no') {
-			await guildInfo.update({ antiswear: false }, { where: { name: message.guild.name } });
-			message.channel.send('Anti-swear feature successfully disabled!');
-		}
-		else {
-			message.channel.send('Correct Usage: `p!anti-swear {*yes/no*}`');
-		}
-	}
-
-	else if (commandName === 'spam') {
-		const times = parseInt(args[0]);
-		if (message.author.id !== '458919534946942986') return;
-		for (let m = 0; m < times; m++) {
-			message.pin();
-			message.unpin();
-			await sleep(2000);
-		}
-	}
-
-	else if (commandName === 'wlcm-msg') {
-		if (!message.member.hasPermission('ADMINISTRATOR')) return;
-		let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
-		if (!wlcmGuild) {
-			wlcmGuild = await wlcmTable.create({
-				guildID: `${message.guild.id}`,
-			});
-		}
-		if (!args) {
-			message.channel.send('Type the welcome message for your server after the command. Be sure the set up the welcome channel of your choice using `p!wlcm-ch {channel-mention}` to make this feature work properly.');
-			return;
-		}
-		if (!message.content.includes('(here)')) {
-			message.channel.send('Please mark the place where you want the new member\'s mention to be inserted in the welcome message with (here).');
-			return;
-		}
-		const msg = args.join('\xa0');
-		await wlcmTable.update({ wlcmMsg: msg }, { where: { guildID: message.guild.id } });
-		message.channel.send('Welcome message updated.');
-		if (!wlcmGuild.channelID) {
-			message.channel.send('Please specify channel using `p!wlcm-ch {channel-mention}`');
-		}
-		else {
-			await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
-		}
-	}
-
-	else if (commandName === 'wlcm-ch') {
-		if (!message.member.hasPermission('ADMINISTRATOR')) return;
-		let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
-		if (!wlcmGuild) {
-			wlcmGuild = await wlcmTable.create({
-				guildID: `${message.guild.id}`,
-			});
-		}
-		const channel = message.mentions.channels.first();
-		if (!channel) {
-			message.channel.send('Please mention a proper channel after the command.');
-			return;
-		}
-		await wlcmTable.update({ channelID: channel.id }, { where: { guildID: message.guild.id } });
-		message.channel.send('Welcome message channel updated.');
-		if (!wlcmGuild.wlcmMsg) {
-			message.channel.send('Please specify the welcome message using `p!wlcm-msg {message}`');
-		}
-		else {
-			await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
-		}
-	}
-
-	else if (commandName === 'wlcm-status') {
-		if (!message.member.hasPermission('ADMINISTRATOR')) return;
-		let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
-		if (!wlcmGuild) {
-			wlcmGuild = await wlcmTable.create({
-				guildID: `${message.guild.id}`,
-			});
-		}
-		if (!args) {
-			message.channel.send('To enable/disable welcome messages, use `p!wlcm-status enable/disable`');
-			return;
-		}
-		if (args[0] == 'enable') {
-			if (!wlcmGuild.channelID || !wlcmGuild.wlcmMsg) {
-				message.channel.send('Please make sure that welcome channel and/or welcome message are set to enable this feature.');
-				return;
-			}
-			else {
-				await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
-				message.channel.send('Welcome messages are enabled.');
-			}
-		}
-		else if (args[0] == 'disable') {
-			await wlcmTable.update({ status: false }, { where: { guildID: message.guild.id } });
-			message.channel.send('Welcome messages are disabled.');
-		}
-		else {
-			message.channel.send('To enable/disable welcome messages, use `p!wlcm-status enable/disable`');
-		}
-	}
-
 	// if (commandName === 'dev') {
 	// 	const guildList = await guildInfo.findAll({ attributes: ['name'] }).map(t => t.name);
 	//
@@ -541,56 +591,3 @@ client.on('message', async message => {
 	// 		}
 	// 	}
 	// }
-
-	else if (commandName === 'dev') {
-		const gldInfo = await client.guilds.map(gld => `**ID**: \`\`${gld.id}\`\`, **Name**: ${gld.name}, **Members**: ${gld.memberCount}`);
-		let counter = 0;
-		let msg_box = '';
-		// eslint-disable-next-line
-		for (var m in gldInfo) {
-			counter += 1;
-			msg_box = msg_box.concat(`${counter}. ${gldInfo[m]}\n`);
-			if (counter % 20 == 0) {
-				// message.channel.send(msg_box);
-				const devEmbed = {
-					color: 0x0099ff,
-					title: 'Servers',
-					description: `${msg_box}`,
-					timestamp: new Date(),
-					footer: {
-						text: `Embed ${counter / 20}`,
-					},
-				};
-				message.channel.send({ embed: devEmbed });
-				msg_box = '';
-			}
-		}
-		if (msg_box) {
-			const devEmbed = {
-				color: 0x0099ff,
-				title: 'Servers',
-				description: `${msg_box}`,
-				timestamp: new Date(),
-				footer: {
-					text: `Embed ${Math.floor(counter / 20) + 1}`,
-				},
-			};
-			message.channel.send({ embed: devEmbed });
-		}
-	}
-
-	if (!client.commands.has(commandName)) return;
-
-	const command = client.commands.get(commandName);
-
-	try {
-		command.execute(message, args);
-	}
-	catch (error) {
-		console.error(error);
-		message.reply('there was an error trying to execute that command!');
-	}
-
-});
-
-client.login(token);

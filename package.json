@@ -9,15 +9,15 @@
   "author": "Priyanth Elango",
   "license": "ISC",
   "dependencies": {
-    "chalk-console": "^1.0.1",
+    "chalk-console": "^1.1.0",
     "date-and-time": "^0.6.3",
     "dblapi.js": "^2.3.0",
     "discord-anti-spam": "^2.0.0",
-    "discord.js": "^11.4.2",
+    "discord.js": "^11.6.4",
     "eslint": "^5.13.0",
     "moment": "^2.24.0",
-    "sequelize": "^4.42.0",
-    "sqlite3": "^4.0.6",
+    "sequelize": "^4.44.4",
+    "sqlite3": "^4.2.0",
     "time-stamp": "^2.2.0"
   },
   "devDependencies": {}
