@@ -32,7 +32,7 @@
 
 
 // Preferential Welcome-Message base template
-
+//
 // // eslint-disable-next-line
 // if (commandName === 'wlcm-msg' && message.member.hasPermission('ADMINISTRATOR')) {
 //   if (!args.length) {
@@ -62,7 +62,7 @@
 
 
 // Currency System for MOD
-
+//
 // const MODmon = sequelize.define('MODmoney', {
 // 	name: {
 // 		type: Sequelize.STRING,

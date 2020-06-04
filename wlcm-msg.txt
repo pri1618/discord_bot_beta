@@ -1,0 +1,129 @@
+// beneath const Discord and stuff.
+const Sequelize = require('sequelize');
+
+const sequelize = new Sequelize('database', 'user', 'password', {
+	host: 'localhost',
+	dialect: 'sqlite',
+	logging: false,
+	operatorsAliases: false,
+	// SQLite only
+	storage: 'database.sqlite',
+});
+
+// you can change the table variable and stuff, but you'll need to appropriately edit it all over the code.
+const wlcmTable = sequelize.define('wlcm-tbl', {
+	guildID: {
+		type: Sequelize.STRING,
+		unique: true,
+	},
+	wlcmMsg: Sequelize.TEXT,
+	channelID: {
+		type: Sequelize.STRING,
+	},
+	status: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: false,
+	},
+});
+
+// inside 'ready' event.
+wlcmTable.sync();
+
+// new event. keep it below the 'ready' event. if you already have such an event, incorporate this code inside of that keeping in mind the variables you are using.
+client.on('guildMemberAdd', async member => {
+	const wlcmGuild = await wlcmTable.findOne({ where: { guildID: member.guild.id } });
+	if (!wlcmGuild) return;
+	if (wlcmGuild.status === false || !(wlcmGuild.wlcmMsg) || !(wlcmGuild.channelID)) return;
+
+	const wlcmCh = member.guild.channels.cache.get(wlcmGuild.channelID);
+	const welArgs = wlcmGuild.wlcmMsg;
+	const msg = welArgs.replace('(here)', `<@${member.id}>`);
+	wlcmCh.send(msg);
+});
+
+// new event. to keep the database clean. deletes the database entry of the server if it is removed from it.
+client.on('guildDelete', async guild => {
+	await wlcmTable.destroy({ where: { guildID: guild.id } });
+});
+
+// have the following code before "if (!client.commands.has(commandName)) return;" part in your index.js and after "const commandName = args.shift().toLowerCase();" part. Accordingly use ifs and else ifs based on whether you have other commands within your index.js file.
+if (commandName === 'wlcm-msg') {
+	if (!message.member.permissions.has('ADMINISTRATOR')) return;
+	let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
+	if (!wlcmGuild) {
+		wlcmGuild = await wlcmTable.create({
+			guildID: `${message.guild.id}`,
+		});
+	}
+	if (!args) {
+		message.channel.send('Type the welcome message for your server after the command. Be sure the set up the welcome channel of your choice using `p!wlcm-ch {channel-mention}` to make this feature work properly.');
+		return;
+	}
+	if (!message.content.includes('(here)')) {
+		message.channel.send('Please mark the place where you want the new member\'s mention to be inserted in the welcome message with (here).');
+		return;
+	}
+	const msg = args.join('\xa0');
+	await wlcmTable.update({ wlcmMsg: msg }, { where: { guildID: message.guild.id } });
+	message.channel.send('Welcome message updated.');
+	if (!wlcmGuild.channelID) {
+		message.channel.send('Please specify channel using `p!wlcm-ch {channel-mention}`');
+	}
+	else {
+		await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
+	}
+}
+
+else if (commandName === 'wlcm-ch') {
+	if (!message.member.permissions.has('ADMINISTRATOR')) return;
+	let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
+	if (!wlcmGuild) {
+		wlcmGuild = await wlcmTable.create({
+			guildID: `${message.guild.id}`,
+		});
+	}
+	const channel = message.mentions.channels.first();
+	if (!channel) {
+		message.channel.send('Please mention a proper channel after the command.');
+		return;
+	}
+	await wlcmTable.update({ channelID: channel.id }, { where: { guildID: message.guild.id } });
+	message.channel.send('Welcome message channel updated.');
+	if (!wlcmGuild.wlcmMsg) {
+		message.channel.send('Please specify the welcome message using `p!wlcm-msg {message}`');
+	}
+	else {
+		await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
+	}
+}
+
+else if (commandName === 'wlcm-status') {
+	if (!message.member.permissions.has('ADMINISTRATOR')) return;
+	let wlcmGuild = await wlcmTable.findOne({ where: { guildID: message.guild.id } });
+	if (!wlcmGuild) {
+		wlcmGuild = await wlcmTable.create({
+			guildID: `${message.guild.id}`,
+		});
+	}
+	if (!args) {
+		message.channel.send('To enable/disable welcome messages, use `p!wlcm-status enable/disable`');
+		return;
+	}
+	if (args[0] == 'enable') {
+		if (!wlcmGuild.channelID || !wlcmGuild.wlcmMsg) {
+			message.channel.send('Please make sure that welcome channel and/or welcome message are set to enable this feature.');
+			return;
+		}
+		else {
+			await wlcmTable.update({ status: true }, { where: { guildID: message.guild.id } });
+			message.channel.send('Welcome messages are enabled.');
+		}
+	}
+	else if (args[0] == 'disable') {
+		await wlcmTable.update({ status: false }, { where: { guildID: message.guild.id } });
+		message.channel.send('Welcome messages are disabled.');
+	}
+	else {
+		message.channel.send('To enable/disable welcome messages, use `p!wlcm-status enable/disable`');
+	}
+}
