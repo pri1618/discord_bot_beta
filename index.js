@@ -175,20 +175,20 @@ client.on('message', async message => {
 
 	const gname = await guildInfo.findOne({ where: { name: message.guild.name } });
 
-	// if (!gname) {
-	// 	if (message.content.startsWith('p!setup')) {
-	// 		// eslint-disable-next-line no-unused-vars
-	// 		const gInfo = await guildInfo.create({
-	// 			name: message.guild.name,
-	// 		});
-	// 		return message.reply('Congratulations! Prime was setup successfully. Please type p!help for more information about Prime\'s functions and commands.');
-	// 	}
-	// }
-	//
-	// if (!gname && !message.author.bot && message.content.startsWith(`${prefix}`)) {
-	// 	message.channel.send('Attention: You haven\'t set up Prime yet. Please set it up using p!setup.');
-	// 	return;
-	// }
+	if (!gname) {
+		if (message.content.startsWith('p!setup')) {
+			// eslint-disable-next-line no-unused-vars
+			const gInfo = await guildInfo.create({
+				name: message.guild.name,
+			});
+			return message.reply('Congratulations! Prime was setup successfully. Please type p!help for more information about Prime\'s functions and commands.');
+		}
+	}
+	
+	if (!gname && !message.author.bot && message.content.startsWith(`${prefix}`)) {
+		message.channel.send('Attention: You haven\'t set up Prime yet. Please set it up using p!setup.');
+		return;
+	}
 
 
 	// This runs the filter on any message the bot receives in any guilds.
@@ -388,7 +388,7 @@ client.on('message', async message => {
 client.login(token);
 
 
-	// if (message.content.includes('trebuchet') && message.author.id === '458919534946942986') {
+// if (message.content.includes('trebuchet') && message.author.id === '458919534946942986') {
 	// 	const EmoteCounter = {
 	// 		color: 0x0099ff,
 	// 		title: 'Emote Counter',
@@ -448,7 +448,8 @@ client.login(token);
 	// 	message.channel.send({ embed: NextEmoteCounter });
 	// }
 	//
-	// if (message.guild.id === '563745832487092254') {
+
+// if (message.guild.id === '563745832487092254') {
 	// 	const emoteList = ['⭐', '❤️', '🍆', '😂'];
 	// 	const msgList = message.content.split(' ');
 	// 	const emoteUsed = [];
@@ -508,7 +509,8 @@ client.login(token);
 	// 	}
 	// }
 	//
-	// if (message.guild.id === '563745832487092254') {
+
+// if (message.guild.id === '563745832487092254') {
 	// 	const emoteList = ['👀', '🦴', '🤔'];
 	// 	const msgList = message.content.split(' ');
 	// 	const emoteUsed = [];
@@ -563,7 +565,7 @@ client.login(token);
 	// 	}
 	// }
 
-	// if (commandName === 'dev') {
+// if (commandName === 'dev') {
 	// 	const guildList = await guildInfo.findAll({ attributes: ['name'] }).map(t => t.name);
 	//
 	// 	const developers = ['458919534946942986'];

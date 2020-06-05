@@ -1,33 +1,23 @@
 // Support system template
 
 // if (command === 'support') {
-// 	const rem = args.join('\xa0');
-// 	if (!args.length) {
-// 		const embed2 = {
-// 			author: {
-// 				name: `${message.author.tag}`,
-// 				icon_url: message.author.displayAvatarURL,
-// 			},
-// 			color: 0xff0000,
-// 			description: 'test',
-// 		};
-// 		client.channels.get('547386402627911691').send({ embed: embed2 });
-// 	}
-// 	else {
-// 		const embed2 = {
-// 			author: {
-// 				name: `${message.author.tag}`,
-// 				icon_url: message.author.displayAvatarURL,
-// 			},
-// 			color: 0xff0000,
-// 			description: `${rem}`,
-// 			footer: {
-// 				text: 'Prime: The All Purpose Bot.',
-// 				icon_url: client.user.displayAvatarURL,
-// 			},
-// 		};
-// 		client.channels.get('547386402627911691').send({ embed: embed2 });
-// 	}
+	// const rem = args.join('\xa0');
+	// if (!args.length) return message.channel.send('Correct usage: `p!support {message}`.');
+	// else {
+	// 	const embed2 = {
+	// 		author: {
+	// 			name: `${message.author.tag}`,
+	// 			icon_url: message.author.displayAvatarURL,
+	// 		},
+	// 		color: 0xff0000,
+	// 		description: `${rem}`,
+	// 		footer: {
+	// 			text: 'Prime: The All Purpose Bot.',
+	// 			icon_url: client.user.displayAvatarURL,
+	// 		},
+	// 	};
+	// 	client.channels.get('547386402627911691').send({ embed: embed2 });
+	// }
 // }
 
 
